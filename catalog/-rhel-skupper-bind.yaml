@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: servicename-rhel-skupper-service-bind
+  annotations:
+    github.com/project-slug: ansonmez/backstage-catalog
+spec:
+  type: skupper-service-bind
+  lifecycle: unknown
+  owner: Joshua Mathianas
