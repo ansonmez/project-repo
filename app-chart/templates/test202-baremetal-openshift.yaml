@@ -1,0 +1,58 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: test202-inventory
+  namespace: backstage
+data:
+  inventory.yml: |
+    all:
+      children:
+        local:
+          hosts:
+            localhost
+          vars:
+            ansible_user: cloud-user
+            vm_name: test202
+            aaphost: aap
+            template_id: 13
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test202-baremetal-openshift
+  namespace: backstage
+  labels:
+    backstage.io/kubernetes-id: baremetal-openshift
+spec:
+  selector: {}
+  template:
+    metadata:
+      name: test202-baremetal-openshift
+      labels:
+        backstage.io/kubernetes-id: baremetal-openshift
+    spec:
+      serviceAccountName: pipeline
+      containers:
+        - name: baremetal-openshift-ansible
+          image: {{ .Values.ansible.image }}
+          command:
+            - sh
+            - -c
+            - ansible-playbook /launch_job_template.yml -i /workspace/source/inventory.yml -e aaptoken=$(ANSIBLETOKEN)
+          volumeMounts:
+            - name: inventory
+              mountPath: /workspace/source
+          env:
+            - name: ANSIBLE_HOST_KEY_CHECKING
+              value: "False"
+            - name: ANSIBLETOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ansibletoken
+                  key: ansibletoken
+      volumes:
+      - name: inventory
+        configMap:
+          name: test202-inventory
+          defaultMode: 420
+      restartPolicy: Never
