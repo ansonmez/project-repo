@@ -1,2 +1,2 @@
 ansible:
-  image: quay.io/asonmez/backstage-ansible@sha256:a3776ee96567e88e10784469e6c0a13570d4aadf3fbe6c6e150a16323dd6ba34
+  image: quay.io/asonmez/backstage-ansible@sha256:6a5682a4b9869acba20dc9c43a87f314c62e56434950ac871637dde6af4eed7e
