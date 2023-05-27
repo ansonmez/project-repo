@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: sno10-OpenShiftGitOpsApp
+  annotations:
+    github.com/project-slug: ansonmez/backstage-catalog
+spec:
+  type: OpenShiftGitOpsApp
+  lifecycle: unknown
+  owner: Anil Sonmez
