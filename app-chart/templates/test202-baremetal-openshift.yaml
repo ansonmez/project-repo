@@ -1,0 +1,67 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: test202-inventory
+  namespace: backstage
+data:
+  inventory.yml: |
+    all:
+      hosts:
+        localhost:
+          ansible_connection: local
+      vars:
+        ansible_user: cloud-user
+        vm_name: test202
+        aaphost: aap
+        template_id: 13
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test202-baremetal-openshift
+  namespace: backstage
+  labels:
+    backstage.io/kubernetes-id: baremetal-openshift
+spec:
+  selector: {}
+  template:
+    metadata:
+      name: test202-baremetal-openshift
+      labels:
+        backstage.io/kubernetes-id: baremetal-openshift
+    spec:
+      serviceAccountName: pipeline
+      containers:
+        - name: baremetal-openshift-ansible
+          image: {{ .Values.ansible.image }}
+          command:
+            - sh
+            - -c
+            - cp /workspace/.ssh/id_rsa /tmp/id_rsa && chmod 0400 /tmp/id_rsa && ansible-playbook /launch_job_template.yml -i /workspace/source/inventory.yml -e aaptoken=$(ANSIBLETOKEN) --private-key=/tmp/id_rsa
+          volumeMounts:
+            - name: inventory
+              mountPath: /workspace/source
+            - name: ssh
+              mountPath: /workspace/.ssh/id_rsa
+              subPath: id_rsa
+          env:
+            - name: ANSIBLE_HOST_KEY_CHECKING
+              value: "False"
+            - name: ANSIBLETOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ansibletoken
+                  key: ansibletoken
+      volumes:
+      - name: inventory
+        configMap:
+          name: test202-inventory
+          defaultMode: 420
+      - name: ssh
+        secret:
+          secretName: ssh-key
+          defaultMode: 256
+          items:
+            - key: ssh-privatekey
+              path: id_rsa
+      restartPolicy: Never
